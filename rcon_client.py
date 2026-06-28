@@ -225,14 +225,14 @@ class RconClient:
                 return None
                 
         return data
-    
+
     def add_to_whitelist(self, minecraft_nickname: str) -> bool:
         """
-        Добавить игрока в белый список
-        
+        Добавить игрока в белый список через команду noblewl
+
         Args:
             minecraft_nickname: Ник игрока для добавления
-            
+
         Returns:
             bool: True если игрок успешно добавлен, иначе False
         """
@@ -242,32 +242,38 @@ class RconClient:
             if not self.connect():
                 self.log(f"Не удалось подключиться для добавления в whitelist")
                 return False
-        
-        # Формируем и отправляем команду
-        command = f"whitelist add {minecraft_nickname}"
+
+        # Формируем и отправляем команду noblewl add name
+        command = f'noblewl add name "{minecraft_nickname}"'
         self.log(f"Добавление игрока в whitelist: {minecraft_nickname}")
-        
+        self.log(f"Отправка команды: {command}")
+
         response = self.send_command(command)
-        self.log(f"Ответ на whitelist add: {response}")
-        
+        self.log(f"Ответ на noblewl add: {response}")
+
         if response is None:
             self.log("Нет ответа от сервера")
             return False
-        
+
         # Проверяем различные варианты успешных ответов
         success_phrases = [
-            "to the white list",
-            "added to whitelist",
-            "added to the white list",
-            "is already whitelisted",
-            "добавлен в белый список"
+            "added",
+            "успешно",
+            "добавлен",
+            "success",
+            "whitelist",
         ]
-        
+
         for phrase in success_phrases:
             if phrase.lower() in response.lower():
                 self.log(f"Игрок {minecraft_nickname} успешно добавлен в whitelist")
                 return True
-        
+
+        # Если команда выполнилась без ошибок (пустой ответ или без ошибок)
+        if "error" not in response.lower() and "fail" not in response.lower():
+            self.log(f"Игрок {minecraft_nickname} успешно добавлен в whitelist")
+            return True
+
         self.log(f"Неожиданный ответ при добавлении в whitelist: {response}")
         return False
     
